@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VΞXO — Tattoo Artist</title>
+
+  <!-- Fuente moderna y limpia (única dependencia externa opcional) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Syne:wght@800&display=swap" rel="stylesheet">
+
+  <style>
+    /* =====================================================================
+       1. VARIABLES DE DISEÑO (Edita aquí los colores principales)
+       ===================================================================== */
+    :root {
+      --bg-color: #070709;
+      --accent: #ff1e56;
+      --accent-glow: rgba(255, 30, 86, 0.35);
+      --glass-bg: rgba(18, 18, 24, 0.62);
+      --glass-border: rgba(255, 255, 255, 0.12);
+      --text-main: #f4f4f6;
+      --text-muted: #9ca3af;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      /* Cuadrícula táctica sutil */
+      background-image: 
+        radial-gradient(circle at 50% 0%, rgba(255, 30, 86, 0.14), transparent 55%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+      background-size: 100% 100%, 36px 36px, 36px 36px;
+    }
+
+    /* =====================================================================
+       2. ANIMACIÓN DE ENTRADA (SPLASH SCREEN)
+       ===================================================================== */
+    #splash {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      background: #050507;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.55s ease, visibility 0.55s ease;
+    }
+
+    #splash.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .splash-logo {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(3.2rem, 12vw, 5.5rem);
+      font-weight: 800;
+      letter-spacing: 0.2em;
+      color: #fff;
+      text-shadow: 0 0 25px var(--accent-glow);
+      position: relative;
+      transform: scale(0.2);
+      opacity: 0;
+    }
+
+    .splash-logo span {
+      color: var(--accent);
+    }
+
+    /* Efecto glitch sutil */
+    .splash-logo::after {
+      content: "VΞXO";
+      position: absolute;
+      left: 2px;
+      top: 0;
+      color: var(--accent);
+      opacity: 0.65;
+      clip-path: inset(45% 0 30% 0);
+      animation: glitch 1.2s infinite alternate-reverse;
+    }
+
+    @keyframes glitch {
+      0% { transform: translate(-2px, 1px); }
+      50% { transform: translate(2px, -1px); }
+      100% { transform: translate(-1px, 0); }
+    }
+
+    .splash-tag {
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      letter-spacing: 0.35em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    /* =====================================================================
+       3. CONTENEDOR PRINCIPAL (Mobile-First, centrado en PC)
+       ===================================================================== */
+    .container {
+      width: 100%;
+      max-width: 560px; /* Ideal para celular y elegante en computadora */
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    .container.visible {
+      opacity: 1;
+    }
+
+    /* =====================================================================
+       4. ESTÉTICA GLASSMORFISMO DARK & AGRESIVO
+       ===================================================================== */
+    .glass-card {
+      background: var(--glass-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.75);
+      /* Cortes angulares agresivos */
+      clip-path: polygon(14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%, 0 14px);
+    }
+
+    /* Perfil / Cabecera */
+    .profile-header {
+      padding: 1.75rem 1.5rem;
+      text-align: center;
+      margin-bottom: 1.25rem;
+      position: relative;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.45rem;
+      font-size: 0.7rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--accent);
+      background: rgba(255, 30, 86, 0.1);
+      border: 1px solid rgba(255, 30, 86, 0.3);
+      padding: 0.3rem 0.75rem;
+      border-radius: 99px;
+      margin-bottom: 0.9rem;
+    }
+
+    .status-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .brand-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 2.8rem;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      line-height: 1;
+      margin-bottom: 0.4rem;
+    }
+
+    .brand-title span {
+      color: var(--accent);
+    }
+
+    .brand-subtitle {
+      font-size: 0.8rem;
+      letter-spacing: 0.25em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .brand-bio {
+      font-size: 0.92rem;
+      line-height: 1.55;
+      color: #d1d5db;
+    }
+
+    /* =====================================================================
+       5. BOTONES DE ACCIÓN (GLASSMORFISMO CON BRILLO CARMESÍ)
+       ===================================================================== */
+    .actions-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .glass-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      text-decoration: none;
+      color: var(--text-main);
+      padding: 1rem 1.25rem;
+      background: linear-gradient(135deg, rgba(24, 24, 32, 0.75), rgba(10, 10, 14, 0.9));
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      clip-path: polygon(12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%, 0 12px);
+      transition: transform 0.2s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+    }
+
+    .glass-btn:hover,
+    .glass-btn:active {
+      border-color: var(--accent);
+      box-shadow: 0 0 22px var(--accent-glow);
+      transform: translateY(-2px);
+    }
+
+    /* Botón Principal Destacado (WhatsApp) */
+    .glass-btn.primary {
+      background: linear-gradient(135deg, rgba(225, 29, 72, 0.85), rgba(120, 15, 45, 0.92));
+      border-color: rgba(255, 120, 150, 0.45);
+      box-shadow: 0 6px 24px rgba(225, 29, 72, 0.3);
+    }
+
+    .glass-btn.primary:hover,
+    .glass-btn.primary:active {
+      box-shadow: 0 0 30px rgba(255, 30, 86, 0.65);
+      border-color: #fff;
+    }
+
+    .btn-info strong {
+      display: block;
+      font-size: 0.95rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .btn-info span {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .glass-btn.primary .btn-info span {
+      color: #ffe4e6;
+    }
+
+    .btn-arrow {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--accent);
+    }
+
+    .glass-btn.primary .btn-arrow {
+      color: #fff;
+    }
+
+    /* =====================================================================
+       6. ESPECIALIDADES DE ESTILO
+       ===================================================================== */
+    .section-title {
+      font-size: 0.78rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .section-title::after {
+      content: "";
+      flex: 1;
+      height: 1px;
+      background: var(--glass-border);
+    }
+
+    .styles-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 1.75rem;
+    }
+
+    .style-card {
+      padding: 1rem;
+      transition: border-color 0.25s ease;
+    }
+
+    .style-card:hover {
+      border-color: rgba(255, 30, 86, 0.5);
+    }
+
+    .style-card h3 {
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 0.35rem;
+      color: #fff;
+    }
+
+    .style-card p {
+      font-size: 0.78rem;
+      line-height: 1.45;
+      color: var(--text-muted);
+    }
+
+    /* =====================================================================
+       7. MINI GALERÍA (4 Espacios listos para tus fotos en GitHub)
+       ===================================================================== */
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.75rem;
+      margin-bottom: 2rem;
+    }
+
+    .gallery-item {
+      aspect-ratio: 1 / 1;
+      position: relative;
+      overflow: hidden;
+      background: #0c0c10;
+      border: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+
+    .gallery-item:hover img {
+      transform: scale(1.06);
+    }
+
+    .gallery-label {
+      position: absolute;
+      bottom: 0.5rem;
+      left: 0.5rem;
+      background: rgba(5, 5, 7, 0.85);
+      border: 1px solid var(--glass-border);
+      padding: 0.2rem 0.5rem;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #e5e7eb;
+    }
+
+    /* =====================================================================
+       8. FOOTER & RESPONSIVE ESCRITORIO
+       ===================================================================== */
+    footer {
+      text-align: center;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--glass-border);
+    }
+
+    footer strong {
+      color: #fff;
+    }
+
+    @media (min-width: 640px) {
+      .container {
+        padding-top: 3rem;
+      }
+      .brand-title {
+        font-size: 3.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- =====================================================================
+       ANIMACIÓN DE ENTRADA (SPLASH SCREEN)
+       ===================================================================== -->
+  <div id="splash">
+    <div id="splash-logo" class="splash-logo">V<span>Ξ</span>XO</div>
+    <p class="splash-tag">DARK TATTOO // BLACKWORK</p>
+  </div>
+
+  <!-- =====================================================================
+       CONTENIDO PRINCIPAL
+       ===================================================================== -->
+  <main id="app" class="container">
+
+    <!-- 1. TARJETA DE PERFIL -->
+    <header class="glass-card profile-header">
+      <div class="status-badge">
+        <span class="status-dot"></span> Agenda Abierta
+      </div>
+      <h1 class="brand-title">V<span>Ξ</span>XO</h1>
+      <p class="brand-subtitle">TATTOO ARTIST • DARK ART</p>
+      <p class="brand-bio">
+        Especialista en tinta negra profunda, trazos afilados y geometría agresiva. Piezas personalizadas diseñadas para fluir con la anatomía del cuerpo.
+      </p>
+    </header>
+
+    <!-- 2. BOTONES DE ACCIÓN (Edita los enlaces href="" con tus datos) -->
+    <section class="actions-list">
+      <!-- Cambia el número 573000000000 por tu WhatsApp -->
+      <a href="https://wa.me/573000000000?text=Hola%20VEXO,%20quiero%20cotizar%20un%20tatuaje" target="_blank" rel="noopener" class="glass-btn primary elastic-item">
+        <div class="btn-info">
+          <strong>Cotizar por WhatsApp</strong>
+          <span>Envía tu idea, zona y tamaño aproximado</span>
+        </div>
+        <span class="btn-arrow">↗</span>
+      </a>
+
+      <!-- Cambia por tu usuario real de Instagram -->
+      <a href="https://instagram.com" target="_blank" rel="noopener" class="glass-btn elastic-item">
+        <div class="btn-info">
+          <strong>Portafolio / Instagram</strong>
+          <span>@vexo.ink — Trabajos recientes y reels</span>
+        </div>
+        <span class="btn-arrow">→</span>
+      </a>
+
+      <a href="#galeria" class="glass-btn elastic-item">
+        <div class="btn-info">
+          <strong>Flashes Disponibles</strong>
+          <span>Diseños únicos listos para tatuar</span>
+        </div>
+        <span class="btn-arrow">↓</span>
+      </a>
+
+      <!-- Cambia por el enlace de Google Maps de tu estudio -->
+      <a href="https://maps.google.com" target="_blank" rel="noopener" class="glass-btn elastic-item">
+        <div class="btn-info">
+          <strong>Ubicación / Estudio</strong>
+          <span>Estudio Privado • Solo con cita previa</span>
+        </div>
+        <span class="btn-arrow">⌖</span>
+      </a>
+    </section>
+
+    <!-- 3. ESPECIALIDADES EN ESTILO -->
+    <h2 class="section-title">// Especialidades</h2>
+    <section class="styles-grid">
+      <article class="glass-card style-card">
+        <h3>Cyber-Sigilism</h3>
+        <p>Líneas orgánicas afiladas y estructuras futuristas adaptadas al movimiento muscular.</p>
+      </article>
+
+      <article class="glass-card style-card">
+        <h3>Dark Blackwork</h3>
+        <p>Saturación negra sólida de alto contraste y composición oscura de impacto.</p>
+      </article>
+
+      <article class="glass-card style-card">
+        <h3>Ornamental / Tribal</h3>
+        <p>Simetría gótica y neo-tribal agresivo que envuelve la piel como armadura.</p>
+      </article>
+
+      <article class="glass-card style-card">
+        <h3>Fine Line Oscuro</h3>
+        <p>Micro-detalles precisos, sombras suaves y terminaciones en aguja fina.</p>
+      </article>
+    </section>
+
+    <!-- 4. MINI GALERÍA (Para usar tus fotos en GitHub, sube img1.jpg a tu repo y cambia src="img1.jpg") -->
+    <h2 id="galeria" class="section-title">// Piezas & Flashes</h2>
+    <section class="gallery-grid">
+      
+      <!-- Espacio 1 -->
+      <div class="gallery-item">
+        <svg viewBox="0 0 200 200" width="100%" height="100%">
+          <rect width="200" height="200" fill="#09090d"/>
+          <path d="M100 18 C110 70, 155 40, 182 30 C145 80, 130 100, 178 162 C125 130, 110 140, 100 185 C90 140, 75 130, 22 162 C70 100, 55 80, 18 30 C45 40, 90 70, 100 18 Z" fill="none" stroke="#ffffff" stroke-width="1.8"/>
+          <path d="M100 50 L108 92 L150 100 L108 108 L100 150 L92 108 L50 100 L92 92 Z" fill="#ff1e56"/>
+        </svg>
+        <span class="gallery-label">Cyber-Sigilism</span>
+      </div>
+
+      <!-- Espacio 2 -->
+      <div class="gallery-item">
+        <svg viewBox="0 0 200 200" width="100%" height="100%">
+          <rect width="200" height="200" fill="#0b0b10"/>
+          <polygon points="100,20 175,65 175,135 100,180 25,135 25,65" fill="#14141c" stroke="#ffffff" stroke-width="2"/>
+          <polygon points="100,45 145,100 100,155 55,100" fill="#ff1e56"/>
+        </svg>
+        <span class="gallery-label">Blackwork</span>
+      </div>
+
+      <!-- Espacio 3 -->
+      <div class="gallery-item">
+        <svg viewBox="0 0 200 200" width="100%" height="100%">
+          <rect width="200" height="200" fill="#09090d"/>
+          <circle cx="100" cy="100" r="62" fill="none" stroke="#ff1e56" stroke-width="1.5" stroke-dasharray="5 4"/>
+          <path d="M100 22 L114 86 L178 100 L114 114 L100 178 L86 114 L22 100 L86 86 Z" fill="none" stroke="#ffffff" stroke-width="2"/>
+        </svg>
+        <span class="gallery-label">Flash Disponible</span>
+      </div>
+
+      <!-- Espacio 4 -->
+      <div class="gallery-item">
+        <svg viewBox="0 0 200 200" width="100%" height="100%">
+          <rect width="200" height="200" fill="#0b0b10"/>
+          <path d="M30 45 Q100 85 170 35 Q125 105 175 165 Q100 120 25 165 Q75 100 30 45 Z" fill="none" stroke="#ffffff" stroke-width="2"/>
+          <line x1="55" y1="100" x2="145" y2="100" stroke="#ff1e56" stroke-width="2.5"/>
+        </svg>
+        <span class="gallery-label">Neo-Tribal</span>
+      </div>
+
+    </section>
+
+    <!-- 5. FOOTER MINIMALISTA -->
+    <footer>
+      <strong>VΞXO</strong> — DARK TATTOO STUDIO © 2026
+    </footer>
+
+  </main>
+
+  <!-- =====================================================================
+       JAVASCRIPT: ECUACIÓN EASE AND WIZZ (outElastic) PARA ENTRADA
+       ===================================================================== -->
+  <script>
+    // Ecuación matemática original Ease and Wizz 2.0.5 : outElastic
+    var p = 0.81;
+    var a = 1;
+
+    function easeandwizz_outElastic(t, b, c, d, a, p) {
+      if (t == 0) return b;
+      if ((t /= d) == 1) return b + c;
+      if (!p) p = d * 0.3;
+      if (!a || a < Math.abs(c)) {
+        a = c;
+        var s = p / 4;
+      } else {
+        var s = (p / (2 * Math.PI)) * Math.asin(c / a);
+      }
+      return a * Math.pow(2, -10 * t) * Math.sin(((t * d - s) * (2 * Math.PI)) / p) + c + b;
+    }
+
+    // Ejecuta la animación de bienvenida al cargar la página
+    window.addEventListener('DOMContentLoaded', () => {
+      const splash = document.getElementById('splash');
+      const logo = document.getElementById('splash-logo');
+      const app = document.getElementById('app');
+
+      const duration = 900; // Duración del rebote en ms
+      const start = performance.now();
+      logo.style.opacity = '1';
+
+      function animateLogo(now) {
+        const elapsed = now - start;
+        if (elapsed < duration) {
+          const progress = easeandwizz_outElastic(elapsed, 0, 1, duration, a, p);
+          const scale = 0.25 + 0.75 * progress;
+          logo.style.transform = `scale(${scale})`;
+          requestAnimationFrame(animateLogo);
+        } else {
+          logo.style.transform = 'scale(1)';
+        }
+      }
+
+      requestAnimationFrame(animateLogo);
+
+      // Oculta el Splash Screen y muestra el portafolio
+      setTimeout(() => {
+        splash.classList.add('hidden');
+        app.classList.add('visible');
+      }, 1500);
+    });
+  </script>
+</body>
+</html>
